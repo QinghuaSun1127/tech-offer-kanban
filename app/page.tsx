@@ -1009,34 +1009,34 @@ function WorkloadStatusCard({ jobs }: { jobs: JobApplication[] }) {
     totalJobs === 0
       ? 0
       : Math.round((appliedAndBeyond / totalJobs) * 100);
-  const interviewRate =
+  const actualInterviewRate =
     appliedAndBeyond === 0
       ? 0
       : Math.round((interviewsSecured / appliedAndBeyond) * 100);
 
   return (
-    <section className="shrink-0 rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-gray-900/70">
-      <h2 className="mb-5 text-lg font-bold text-gray-900 dark:text-white">
-        Pipeline Conversion Stats
+    <section className="w-full min-w-0 shrink-0 rounded-[24px] border border-gray-100 bg-white p-4 shadow-sm sm:p-5 dark:border-white/10 dark:bg-gray-900/70">
+      <h2 className="mb-4 text-base font-bold text-gray-900 sm:mb-5 sm:text-lg dark:text-white">
+        Pipeline Execution Stats
       </h2>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
         <SemiCircleChart
           percentage={executionRate}
           color="text-indigo-500"
           shadowColor="text-indigo-200"
-          label="Application Execution"
+          label="Submitted / Total (Execution)"
           filterId="workload-indigo-glow"
           legendCompleted="Submitted"
           legendRemaining="In Wishlist"
         />
         <SemiCircleChart
-          percentage={interviewRate}
+          percentage={actualInterviewRate}
           color="text-green-500"
           shadowColor="text-green-200"
-          label="Interview Conversion"
+          label="Interviews / Submitted (Conversion)"
           filterId="workload-green-glow"
           legendCompleted="Interviews Secured"
-          legendRemaining="Applied/Assessment"
+          legendRemaining="OA/Applied"
         />
       </div>
     </section>
@@ -1074,7 +1074,7 @@ function ApplicationStatsCard({ jobs }: { jobs: JobApplication[] }) {
   ];
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-gray-50 bg-[#F8F9FE] p-4 shadow-sm dark:border-white/10 dark:bg-[#111C44]">
+    <section className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-[24px] border border-gray-50 bg-[#F8F9FE] p-4 shadow-sm dark:border-white/10 dark:bg-[#111C44]">
       <div className="flex shrink-0 items-center justify-between gap-4">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">
           Pipeline Distribution
@@ -1133,7 +1133,7 @@ function ApplicationStatsCard({ jobs }: { jobs: JobApplication[] }) {
               className="flex h-full flex-1 items-end justify-center z-20"
             >
               <div
-                className="w-8 max-w-full rounded-full bg-gradient-to-t from-[#4FD1C5] to-[#6B5AE0] transition-all duration-500 ease-out hover:opacity-90 sm:w-10"
+                className="w-10 max-w-[22%] rounded-full bg-gradient-to-t from-[#4FD1C5] to-[#6B5AE0] transition-all duration-500 ease-out hover:opacity-90 sm:w-11 md:max-w-none md:w-10"
                 style={{ height: `${(value / maxPipeline) * 85}%` }}
               />
             </div>
@@ -1736,10 +1736,10 @@ function DailyActivityTimeline({
   };
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900/70">
-      <div className="flex shrink-0 items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white min-w-[160px]">
+    <section className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900/70">
+      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+          <h2 className="min-w-0 truncate text-base font-bold text-gray-900 sm:text-lg dark:text-white sm:max-w-none">
             {getDateTitle()}
           </h2>
           <div className="flex items-center gap-1 text-gray-400">
@@ -1811,10 +1811,10 @@ function DailyActivityTimeline({
         </div>
       </div>
 
-      <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex min-w-[760px]">
-            <div className="w-12 shrink-0 pt-6">
+      <div className="mt-4 flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-0 md:min-w-[760px]">
+            <div className="hidden w-12 shrink-0 pt-6 md:block">
               {activeCategories.map((category) => (
                 <div
                   key={category}
@@ -2347,37 +2347,38 @@ function AddApplicationModal({
             </div>
           </div>
 
-          <div>
-            <label htmlFor="add-company" className={modalLabelClass}>
-              Company Name <span className={modalStarClass}>*</span>
-            </label>
-            <input
-              id="add-company"
-              type="text"
-              name="company"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              placeholder="e.g., Qualcomm"
-              required
-              autoComplete="organization"
-              className={inputClassName}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="add-role" className={modalLabelClass}>
-              Role / Position <span className={modalStarClass}>*</span>
-            </label>
-            <input
-              id="add-role"
-              type="text"
-              name="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              placeholder="e.g., Algorithm Engineer"
-              required
-              className={inputClassName}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="min-w-0">
+              <label htmlFor="add-company" className={modalLabelClass}>
+                Company Name <span className={modalStarClass}>*</span>
+              </label>
+              <input
+                id="add-company"
+                type="text"
+                name="company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="e.g., Qualcomm"
+                required
+                autoComplete="organization"
+                className={inputClassName}
+              />
+            </div>
+            <div className="min-w-0">
+              <label htmlFor="add-role" className={modalLabelClass}>
+                Role / Position <span className={modalStarClass}>*</span>
+              </label>
+              <input
+                id="add-role"
+                type="text"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                placeholder="e.g., Algorithm Engineer"
+                required
+                className={inputClassName}
+              />
+            </div>
           </div>
 
           <div>
@@ -2546,35 +2547,36 @@ function EditApplicationModal({
         </p>
 
         <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="edit-company" className={modalLabelClass}>
-              Company Name <span className={modalStarClass}>*</span>
-            </label>
-            <input
-              id="edit-company"
-              type="text"
-              name="company"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              required
-              autoComplete="organization"
-              className={inputClassName}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="edit-role" className={modalLabelClass}>
-              Role / Position <span className={modalStarClass}>*</span>
-            </label>
-            <input
-              id="edit-role"
-              type="text"
-              name="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-              className={inputClassName}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="min-w-0">
+              <label htmlFor="edit-company" className={modalLabelClass}>
+                Company Name <span className={modalStarClass}>*</span>
+              </label>
+              <input
+                id="edit-company"
+                type="text"
+                name="company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                required
+                autoComplete="organization"
+                className={inputClassName}
+              />
+            </div>
+            <div className="min-w-0">
+              <label htmlFor="edit-role" className={modalLabelClass}>
+                Role / Position <span className={modalStarClass}>*</span>
+              </label>
+              <input
+                id="edit-role"
+                type="text"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className={inputClassName}
+              />
+            </div>
           </div>
 
           <div>
@@ -2862,17 +2864,17 @@ export default function Home() {
         <div className="h-[calc(100vh-80px)] min-h-0 flex-1 overflow-x-hidden overflow-y-hidden">
 
           {currentView === "dashboard" && (
-            <div className="mx-auto grid h-full min-h-0 max-w-[1800px] grid-cols-1 gap-5 px-8 pb-5 pt-5 xl:grid-cols-12 xl:items-stretch">
-              <div className="col-span-1 flex h-full min-h-0 flex-col gap-5 xl:col-span-8">
-                <div className="flex flex-wrap gap-3">
-                  <div className="min-w-[140px] flex-1 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-100 dark:bg-gray-900/60 dark:ring-white/10 dark:shadow-none">
+            <div className="mx-auto grid h-full min-h-0 max-w-[1800px] grid-cols-1 gap-4 px-4 pb-4 pt-4 sm:gap-5 sm:px-6 sm:pb-5 sm:pt-5 md:gap-5 xl:grid-cols-12 xl:gap-5 xl:items-stretch xl:px-8">
+              <div className="col-span-1 flex h-full min-h-0 min-w-0 w-full flex-col gap-4 sm:gap-5 xl:col-span-8">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+                  <div className="min-w-0 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-100 dark:bg-gray-900/60 dark:ring-white/10 dark:shadow-none">
                     <div className="flex items-start justify-between">
                       <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Applications Sent</p>
                       <span className="text-[10px] font-bold text-green-500">▲ +12 this month</span>
                     </div>
                     <p className="mt-1 text-xl font-semibold tabular-nums text-gray-900 dark:text-white">{totalApplications}</p>
                   </div>
-                  <div className="min-w-[140px] flex-1 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-100 dark:bg-gray-900/60 dark:ring-white/10 dark:shadow-none">
+                  <div className="min-w-0 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-100 dark:bg-gray-900/60 dark:ring-white/10 dark:shadow-none">
                     <div className="flex items-start justify-between">
                       <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Pending Online Assessments</p>
                       {pendingAssessment > 0 ? (
@@ -2900,7 +2902,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="col-span-1 flex h-full min-h-0 w-full flex-col gap-5 overflow-hidden xl:col-span-4">
+              <div className="col-span-1 flex min-h-0 min-w-0 w-full flex-col gap-4 overflow-hidden sm:gap-5 xl:col-span-4">
                 <WorkloadStatusCard jobs={jobs} />
                 <ApplicationStatsCard jobs={jobs} />
               </div>
