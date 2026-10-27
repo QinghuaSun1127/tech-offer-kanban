@@ -1,8 +1,18 @@
 "use client";
 
-import { useDroppable } from "@dnd-kit/core";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCorners,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import {
   SortableContext,
+  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -936,21 +946,47 @@ function KanbanBoardView({
     return groupByColumn(filtered);
   }, [jobs, searchQuery]);
 
+  // A small activation distance keeps clicks on card buttons from starting a drag.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    // `over` is either a column droppable (id = column name) or another card (id = job id).
+    const targetColumn = COLUMN_ORDER.includes(overId as BoardColumn)
+      ? (overId as BoardColumn)
+      : jobs.find((j) => j.id === overId)?.status;
+    const current = jobs.find((j) => j.id === activeId)?.status;
+    if (targetColumn && targetColumn !== current) {
+      onStatusChange(activeId, targetColumn);
+    }
+  };
+
   return (
     <div className="h-full flex-1 overflow-x-auto overflow-y-auto px-8 pb-8 pt-5">
-      <div className="flex h-full min-w-max gap-6">
-        {COLUMN_ORDER.map((col) => (
-          <div key={col} className="flex w-[320px] shrink-0 flex-col">
-            <ColumnLane
-              column={col}
-              jobs={grouped[col]}
-              onEditJob={onEditJob}
-              onDeleteJob={onDeleteJob}
-              onStatusChange={onStatusChange}
-            />
-          </div>
-        ))}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex h-full min-w-max gap-6">
+          {COLUMN_ORDER.map((col) => (
+            <div key={col} className="flex w-[320px] shrink-0 flex-col">
+              <ColumnLane
+                column={col}
+                jobs={grouped[col]}
+                onEditJob={onEditJob}
+                onDeleteJob={onDeleteJob}
+                onStatusChange={onStatusChange}
+              />
+            </div>
+          ))}
+        </div>
+      </DndContext>
     </div>
   );
 }
@@ -2183,53 +2219,29 @@ function AddApplicationModal({
 
   const handleAIParse = async () => {
     const trimmed = jdText.trim();
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!trimmed) {
       window.alert("Please paste a job description first.");
-      return;
-    }
-    if (!apiKey) {
-      window.alert(
-        "Missing NEXT_PUBLIC_GEMINI_API_KEY. Add it to .env.local and restart the dev server.",
-      );
       return;
     }
 
     setIsParsing(true);
     try {
-      const prompt =
-        'You are an expert tech recruiter parser. Extract information from the following Job Description and return ONLY a valid JSON object (no markdown, no backticks). The JSON must have these exact keys:\n\'company\' (string, extract company name),\n\'role\' (string, extract job title),\n\'deadline\' (string, extract deadline in YYYY-MM-DD format, or leave empty string if not found),\n\'prepTags\' (array of strings, extract 3-5 core technical skills or interview topics. Focus heavily on algorithm, software engineering, and hardware/ECE related tech stacks like C++, DSP, Machine Learning, System Design).\nJob Description: ' +
-        trimmed;
+      // The Gemini key stays on the server; see app/api/parse-jd/route.ts.
+      const res = await fetch("/api/parse-jd", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jd: trimmed }),
+      });
 
-      const res = await fetch(
-        `https://likeyouylr-tree-houselikeyouylr.hf.space/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-          }),
-        },
-      );
-
-      const raw = await res.text();
+      const data = (await res.json().catch(() => ({}))) as {
+        text?: string;
+        error?: string;
+      };
       if (!res.ok) {
-        throw new Error(raw || `API error ${res.status}`);
+        throw new Error(data.error || `API error ${res.status}`);
       }
 
-      let data: unknown;
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        throw new Error("Invalid API response.");
-      }
-
-      const text =
-        (data as {
-          candidates?: Array<{
-            content?: { parts?: Array<{ text?: string }> };
-          }>;
-        }).candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      const text = data.text ?? "";
 
       if (!text.trim()) {
         throw new Error("Empty response from model.");
